@@ -21,7 +21,7 @@ const startServer = async () => {
     connectDB(process.env.MONGODB_URL);
     app.listen(process.env.PORT, () => {
       return console.log(
-        `Server is listening at http://localhost:${process.env.PORT}`
+        `Server is listening on http://localhost:${process.env.PORT}`
       );
     });
   } catch (error) {
