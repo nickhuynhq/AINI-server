@@ -1,0 +1,9 @@
+{
+    "dev": {
+      "driver": "pg",
+      "user": "nicholashuynh",
+      "password": "B00tc@mp",
+      "host": "localhost",
+      "database": "aini"
+    }
+  }
