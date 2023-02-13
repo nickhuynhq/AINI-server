@@ -1,41 +1,36 @@
 import express from "express";
 import * as dotenv from "dotenv";
 import cors from "cors";
-import bodyParser from "body-parser"
-
+import bodyParser from "body-parser";
 
 import connectDB from "./mongodb/connect";
-import dalleRoutes from './routes/dalleRoutes'
-import postRoutes from './routes/postRoutes'
+import dalleRoutes from "./routes/dalleRoutes";
+import postRoutes from "./routes/postRoutes";
+import userRoutes from "./routes/userRoutes";
 
-import db from "./queries/queries"
-
-
+// dotenv to use Environment variables
 dotenv.config();
-
 const app = express();
 
-
 // Middlewares
-
 app.use(cors());
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({
     extended: true,
   })
-)
+);
 
+// Setup routes
 app.use(express.json({ limit: "50mb" }));
-app.use('/api/v1/post', postRoutes)
-app.use('/api/v1/dalle', dalleRoutes)
+app.use("/api/v1/post", postRoutes);
+app.use("/api/v1/dalle", dalleRoutes);
+app.use("/api/v1/user", userRoutes);
 
+// Response on main page
 app.get("/", async (req, res) => {
   res.send("Hello from DALL-E!");
 });
-
-// Postgres query
-app.get('/users', db.getUsers)
 
 const startServer = async () => {
   try {
