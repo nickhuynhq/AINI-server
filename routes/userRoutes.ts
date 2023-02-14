@@ -7,6 +7,7 @@ dotenv.config();
 
 const router = express.Router();
 
+// Get all Users
 router.get("/", async (req, res) => {
   pool.query("SELECT * FROM users ORDER BY id ASC", (error, results) => {
     if (error) {
@@ -16,18 +17,21 @@ router.get("/", async (req, res) => {
   });
 });
 
+// Get Users by ID
 router.get("/:userId", async (req, res) => {
-  pool.query(
-    `SELECT * FROM users WHERE id=${req.params.userId} ORDER BY id ASC`,
-    (error, results) => {
-      if (error) {
-        throw error;
+    pool.query(
+      `SELECT * FROM users WHERE id=$1 ORDER BY id ASC`,
+      [req.params.userId],
+      (error, results) => {
+        if (error) {
+          throw error;
+        }
+        res.status(200).json(results.rows);
       }
-      res.status(200).json(results.rows);
-    }
-  );
-});
+    );
+  });
 
+// Add new User
 router.post("/register", async (req, res) => {
     const selectQuery = `
       SELECT username
