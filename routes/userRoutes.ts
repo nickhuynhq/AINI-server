@@ -1,9 +1,9 @@
 import express from "express";
 import * as dotenv from "dotenv";
-import { client } from "../postgres/postgres";
+import { pool } from "../postgres/postgres";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { authorize } from "../utils/functions";
+import { authorize, sanitize } from "../utils/functions";
 
 dotenv.config();
 
@@ -11,7 +11,7 @@ const router = express.Router();
 
 // Get all Users
 router.get("/", authorize, async (req, res) => {
-  client.query("SELECT * FROM users ORDER BY id ASC", (error, results) => {
+  pool.query("SELECT * FROM users ORDER BY id ASC", (error, results) => {
     if (error) {
       throw error;
     }
@@ -21,7 +21,7 @@ router.get("/", authorize, async (req, res) => {
 
 // Get Users by ID
 router.get("/:userId", async (req, res) => {
-  client.query(
+  pool.query(
     `SELECT * FROM users WHERE id=$1 ORDER BY id ASC`,
     [req.params.userId],
     (error, results) => {
@@ -42,7 +42,7 @@ router.post("/register", async (req, res) => {
     `;
 
   const selectValues = [req.body.username];
-  const { rows: existingUsernames } = await client.query(
+  const { rows: existingUsernames } = await pool.query(
     selectQuery,
     selectValues
   );
@@ -67,20 +67,20 @@ router.post("/register", async (req, res) => {
     req.body.username,
   ];
 
-  await client.query(insertQuery, insertValues);
-  res.status(200).json({ message: "Successfully registered" });
+  await pool.query(insertQuery, insertValues);
+  res.status(201).json({ message: "Successfully registered" });
 });
 
 // Delete new User
 router.delete("/delete", authorize, async (req, res) => {
-  client.query(
+  pool.query(
     `DELETE FROM users WHERE id=$1 ORDER BY id ASC`,
     [req.body.userId],
     (error, results) => {
       if (error) {
         throw error;
       }
-      res.status(200).json(results.rows);
+      res.status(204).json(results.rows);
     }
   );
 });
@@ -95,7 +95,7 @@ router.post("/login", async (req, res) => {
       .json({ error: "Login requires username and password fields" });
   }
 
-  const foundUsers = client.query(
+  const foundUsers = pool.query(
     `SELECT * FROM users WHERE username=$1 AND password=$2`,
     [req.body.username, req.body.password],
     (error, results) => {
@@ -132,18 +132,65 @@ router.post("/login", async (req, res) => {
   });
 });
 
-// Edit User
 router.put("/edit", authorize, async (req, res) => {
-  client.query(
-    `SELECT * FROM users WHERE id=$1 AND UPDATE $2`,
-    [req.body.userId, req.body],
-    (error) => {
-      if (error) {
-        throw error;
-      }
-      res.status(200).json({ message: "User updated" });
+    const { userId, firstname, lastname, email, password, username } = req.body;
+  
+    // Sanitize user inputs
+    const sanitizedFirstName = sanitize(firstname);
+    const sanitizedLastName = sanitize(lastname);
+    const sanitizedEmail = sanitize(email);
+    const sanitizedPassword = sanitize(password);
+    const sanitizedUsername = sanitize(username);
+  
+    // Update only non-empty fields
+    const columnsToUpdate = [];
+    const valuesToUpdate = [];
+  
+    if (sanitizedFirstName) {
+      columnsToUpdate.push("firstname");
+      valuesToUpdate.push(sanitizedFirstName);
     }
-  );
-});
+    if (sanitizedLastName) {
+      columnsToUpdate.push("lastname");
+      valuesToUpdate.push(sanitizedLastName);
+    }
+    if (sanitizedEmail) {
+      columnsToUpdate.push("email");
+      valuesToUpdate.push(sanitizedEmail);
+    }
+    if (sanitizedPassword) {
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(sanitizedPassword, 10);
+      columnsToUpdate.push("password");
+      valuesToUpdate.push(hashedPassword);
+    }
+    if (sanitizedUsername) {
+      columnsToUpdate.push("username");
+      valuesToUpdate.push(sanitizedUsername);
+    }
+  
+    // Build the SQL query dynamically
+    let query = "UPDATE users SET ";
+    for (let i = 0; i < columnsToUpdate.length; i++) {
+      query += `${columnsToUpdate[i]} = $${i + 1}`;
+      if (i < columnsToUpdate.length - 1) {
+        query += ", ";
+      }
+    }
+    query += ` WHERE id = $${columnsToUpdate.length + 1}`;
+  
+    // Add the userId as the last parameter in the values array
+    valuesToUpdate.push(userId);
+  
+    // Execute the SQL query using the connection pool
+    try {
+      await pool.query(query, valuesToUpdate);
+      res.status(204).json({ message: "User updated" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
 
 export default router;
