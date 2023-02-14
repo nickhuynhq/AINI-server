@@ -94,7 +94,6 @@ router.post("/login", async (req, res) => {
       .json({ error: "Login requires username and password fields" });
   }
 
-  // SELECT * FROM `user` WHERE username="nickhuynh1" AND password="abc123"
   const foundUsers = client.query(
     `SELECT * FROM users WHERE username=$1 AND password=$2`,
     [req.body.username, req.body.password],
@@ -131,5 +130,10 @@ router.post("/login", async (req, res) => {
     return res.status(403).json({ error: "Invalid login credentials" });
   });
 });
+
+// Edit User
+router.put("/edit", async (req, res) => {
+   
+  });
 
 export default router;
