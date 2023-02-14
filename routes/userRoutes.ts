@@ -3,13 +3,14 @@ import * as dotenv from "dotenv";
 import { client } from "../postgres/postgres";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import { authorize } from "../utils/functions";
 
 dotenv.config();
 
 const router = express.Router();
 
 // Get all Users
-router.get("/", async (req, res) => {
+router.get("/", authorize, async (req, res) => {
   client.query("SELECT * FROM users ORDER BY id ASC", (error, results) => {
     if (error) {
       throw error;
@@ -71,7 +72,7 @@ router.post("/register", async (req, res) => {
 });
 
 // Delete new User
-router.delete("/delete", async (req, res) => {
+router.delete("/delete", authorize, async (req, res) => {
   client.query(
     `DELETE FROM users WHERE id=$1 ORDER BY id ASC`,
     [req.body.userId],
@@ -132,7 +133,7 @@ router.post("/login", async (req, res) => {
 });
 
 // Edit User
-router.put("/edit", async (req, res) => {
+router.put("/edit", authorize, async (req, res) => {
    
   });
 
