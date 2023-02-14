@@ -134,7 +134,16 @@ router.post("/login", async (req, res) => {
 
 // Edit User
 router.put("/edit", authorize, async (req, res) => {
-   
-  });
+  client.query(
+    `SELECT * FROM users WHERE id=$1 AND UPDATE $2`,
+    [req.body.userId, req.body],
+    (error) => {
+      if (error) {
+        throw error;
+      }
+      res.status(200).json({ message: "User updated" });
+    }
+  );
+});
 
 export default router;
