@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.users
     username TEXT NOT NULL,
     password TEXT NOT NULL,
     picture TEXT,
-    email citext NOT NULL,
+    email domain_email NOT NULL,
     created_at timestamp with time zone NOT NULL DEFAULT now()
 );
 
