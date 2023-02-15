@@ -32,9 +32,17 @@ CREATE TABLE IF NOT EXISTS public.posts
     created_at timestamp with time zone NOT NULL DEFAULT (NOW()),
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS public.posts_likes_users (
+    created_at timestamp NOT NULL DEFAULT (NOW()),
+    post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
+);
 
 ALTER TABLE IF EXISTS public.users
     OWNER to postgres;
 
 ALTER TABLE IF EXISTS public.posts
+    OWNER to postgres;
+
+ALTER TABLE IF EXISTS public.posts_likes_users
     OWNER to postgres;
