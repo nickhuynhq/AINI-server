@@ -11,16 +11,17 @@ CHECK(
 
 CREATE TABLE IF NOT EXISTS public.users
 (
-    id SERIAL NOT NULL,
-    firstname character varying(256) COLLATE pg_catalog."default" NOT NULL,
-    lastname character varying(256) COLLATE pg_catalog."default" NOT NULL,
-    email domain_email COLLATE pg_catalog."default" NOT NULL,
-    username character varying(256) COLLATE pg_catalog."default" NOT NULL,
-    password character varying(256) COLLATE pg_catalog."default" NOT NULL,
-    CONSTRAINT users_pkey PRIMARY KEY (id)
-)
+    id serial PRIMARY KEY NOT NULL,
+    firstname text NOT NULL,
+    lastname text NOT NULL,
+    username text NOT NULL,
+    password text NOT NULL,
+    picture text,
+    email citext NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT now()
+);
 
-TABLESPACE pg_default;
+
 
 ALTER TABLE IF EXISTS public.users
     OWNER to postgres;

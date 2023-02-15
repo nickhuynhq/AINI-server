@@ -55,8 +55,8 @@ router.post("/register", async (req, res) => {
   const hash = await bcrypt.hash(req.body.password, salt);
 
   const insertQuery = `
-      INSERT INTO users (firstname, lastname, email, password, username)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO users (firstname, lastname, email, password, username, picture)
+      VALUES ($1, $2, $3, $4, $5, $6)
     `;
 
   const insertValues = [
@@ -65,6 +65,7 @@ router.post("/register", async (req, res) => {
     req.body.email,
     hash,
     req.body.username,
+    req.body.picture,
   ];
 
   await pool.query(insertQuery, insertValues);
@@ -122,7 +123,7 @@ router.post("/login", async (req, res) => {
 });
 
 router.put("/edit", authorize, async (req, res) => {
-  const { userId, firstname, lastname, email, password, username } = req.body;
+  const { userId, firstname, lastname, email, password, username, picture } = req.body;
 
   // Sanitize user inputs
   const sanitizedFirstName = sanitize(firstname);
@@ -130,6 +131,7 @@ router.put("/edit", authorize, async (req, res) => {
   const sanitizedEmail = sanitize(email);
   const sanitizedPassword = sanitize(password);
   const sanitizedUsername = sanitize(username);
+  const sanitizedPicture = sanitize(picture);
 
   // Update only non-empty fields
   const columnsToUpdate = [];
@@ -156,6 +158,10 @@ router.put("/edit", authorize, async (req, res) => {
   if (sanitizedUsername) {
     columnsToUpdate.push("username");
     valuesToUpdate.push(sanitizedUsername);
+  }
+  if (sanitizedPicture) {
+    columnsToUpdate.push("username");
+    valuesToUpdate.push(sanitizedPicture);
   }
 
   // Build the SQL query dynamically
