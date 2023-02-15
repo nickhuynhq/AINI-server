@@ -12,12 +12,12 @@ CHECK(
 -- Users: Main table of the database that contains the information of the users registered in our application. The data that will be stored in this table will be the name
 CREATE TABLE IF NOT EXISTS public.users
 (
-    id serial PRIMARY KEY NOT NULL,
-    firstname text NOT NULL,
-    lastname text NOT NULL,
-    username text NOT NULL,
-    password text NOT NULL,
-    picture text,
+    id SERIAL PRIMARY KEY NOT NULL,
+    firstname TEXT NOT NULL,
+    lastname TEXT NOT NULL,
+    username TEXT NOT NULL,
+    password TEXT NOT NULL,
+    picture TEXT,
     email citext NOT NULL,
     created_at timestamp with time zone NOT NULL DEFAULT now()
 );
