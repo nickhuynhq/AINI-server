@@ -13,7 +13,7 @@ const router = express.Router();
 // Get all Users
 router.get("/", async (req, res) => {
   try {
-    const query = sql`SELECT * FROM users ORDER BY id ASC`;
+    const query = sql`SELECT username, picture, created_at FROM users ORDER BY id ASC`;
     const { rows } = await pool.query(query);
     res.status(200).json(rows);
   } catch (error) {
@@ -23,10 +23,10 @@ router.get("/", async (req, res) => {
 });
 
 // Get Users by ID
-router.get("/:userId", async (req, res) => {
+router.get("/profile", authorize, async (req:any, res) => {
   try {
-    const query = sql`SELECT * FROM users WHERE id=$1`;
-    const { rows } = await pool.query(query);
+    const query = sql`SELECT name, username, picture, email, created_at FROM users WHERE id=$1`;
+    const { rows } = await pool.query(query, [req.userId]);
     res.status(200).json(rows);
   } catch (error) {
     console.error(error);
@@ -51,7 +51,10 @@ router.post("/register", async (req, res) => {
 
     const username = [req.body.username];
     const email = [req.body.email];
-    const { rows: existingUsernames } = await pool.query(usernameQuery, username);
+    const { rows: existingUsernames } = await pool.query(
+      usernameQuery,
+      username
+    );
     const { rows: existingEmails } = await pool.query(emailQuery, email);
 
     if (existingUsernames.length > 0) {
@@ -121,10 +124,9 @@ router.post("/login", async (req, res) => {
 
     if (isPasswordValid) {
       // Password is valid
-      const token = jwt.sign(
-        { user_id: user.id },
-        process.env.JWT_SECRET_KEY
-      );
+      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET_KEY, {
+        expiresIn: "1h",
+      });
 
       return res.json({
         message: "Successfully logged in",
@@ -134,7 +136,6 @@ router.post("/login", async (req, res) => {
 
     // Password is false
     return res.status(403).json({ error: "Invalid login credentials" });
-    
   } catch (error) {
     console.log(error);
     res.status(400).json({ error: error });
