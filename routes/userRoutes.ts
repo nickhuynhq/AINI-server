@@ -99,7 +99,6 @@ router.delete("/delete", authorize, async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log(password)
 
     if (!email || !password) {
       return res
@@ -110,7 +109,6 @@ router.post("/login", async (req, res) => {
     const query = sql`SELECT * FROM users WHERE email=${email}`;
     const { rows: users } = await pool.query(query);
 
-    console.log(users)
     // If no users found, send error message
     if (users.length !== 1) {
       return res.status(401).json({ error: "User does not exist" });
@@ -120,7 +118,6 @@ router.post("/login", async (req, res) => {
 
     // Use bcrypt to compare inputted password to the one in database
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    console.log(isPasswordValid)
 
     if (isPasswordValid) {
       // Password is valid
