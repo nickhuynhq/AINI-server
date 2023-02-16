@@ -54,18 +54,17 @@ router.post("/register", async (req, res) => {
     }
 
     const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(req.body.password, salt);
+    const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
     const insertQuery = `
-      INSERT INTO users (firstname, lastname, email, password, username, picture)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO users (name, email, password, username, picture)
+      VALUES ($1, $2, $3, $4, $5)
     `;
 
     const insertValues = [
-      req.body.firstname,
-      req.body.lastname,
+      req.body.name,
       req.body.email,
-      hash,
+      hashedPassword,
       req.body.username,
       req.body.picture,
     ];
@@ -133,16 +132,14 @@ router.post("/login", async (req, res) => {
   }
 });
 
-
 // Edit User
 router.put("/edit", authorize, async (req, res) => {
   try {
-    const { userId, firstname, lastname, email, password, username, picture } =
+    const { userId, name, email, password, username, picture } =
       req.body;
 
     // Sanitize user inputs
-    const sanitizedFirstName = sanitize(firstname);
-    const sanitizedLastName = sanitize(lastname);
+    const sanitizeName = sanitize(name);
     const sanitizedEmail = sanitize(email);
     const sanitizedPassword = sanitize(password);
     const sanitizedUsername = sanitize(username);
@@ -152,13 +149,9 @@ router.put("/edit", authorize, async (req, res) => {
     const columnsToUpdate = [];
     const valuesToUpdate = [];
 
-    if (sanitizedFirstName) {
-      columnsToUpdate.push("firstname");
-      valuesToUpdate.push(sanitizedFirstName);
-    }
-    if (sanitizedLastName) {
-      columnsToUpdate.push("lastname");
-      valuesToUpdate.push(sanitizedLastName);
+    if (sanitizeName) {
+      columnsToUpdate.push("name");
+      valuesToUpdate.push(sanitizeName);
     }
     if (sanitizedEmail) {
       columnsToUpdate.push("email");
