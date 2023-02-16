@@ -37,20 +37,29 @@ router.get("/:userId", async (req, res) => {
 // Add new User
 router.post("/register", async (req, res) => {
   try {
-    const selectQuery = `
+    const usernameQuery = `
       SELECT username
       FROM users
       WHERE username = $1
     `;
 
-    const selectValues = [req.body.username];
-    const { rows: existingUsernames } = await pool.query(
-      selectQuery,
-      selectValues
-    );
+    const emailQuery = `
+      SELECT email
+      FROM users
+      WHERE email = $1
+    `;
+
+    const username = [req.body.username];
+    const email = [req.body.email];
+    const { rows: existingUsernames } = await pool.query(usernameQuery, username);
+    const { rows: existingEmails } = await pool.query(emailQuery, email);
 
     if (existingUsernames.length > 0) {
       return res.status(403).json({ message: "Username is already taken" });
+    }
+
+    if (existingEmails.length > 0) {
+      return res.status(403).json({ message: "Email already in use" });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -135,8 +144,7 @@ router.post("/login", async (req, res) => {
 // Edit User
 router.put("/edit", authorize, async (req, res) => {
   try {
-    const { userId, name, email, password, username, picture } =
-      req.body;
+    const { userId, name, email, password, username, picture } = req.body;
 
     // Sanitize user inputs
     const sanitizeName = sanitize(name);
