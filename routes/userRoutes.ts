@@ -61,7 +61,6 @@ router.post("/register", async (req, res) => {
     if (existingEmails.length > 0) {
       return res.status(403).json({ message: "Email already in use" });
     }
-
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
@@ -99,31 +98,34 @@ router.delete("/delete", authorize, async (req, res) => {
 // Login User
 router.post("/login", async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
+    console.log(password)
 
-    if (!username || !password) {
+    if (!email || !password) {
       return res
         .status(400)
         .json({ error: "Login requires username and password fields" });
     }
 
-    const query = sql`SELECT * FROM users WHERE username=${username}`;
+    const query = sql`SELECT * FROM users WHERE email=${email}`;
     const { rows: users } = await pool.query(query);
 
+    console.log(users)
     // If no users found, send error message
     if (users.length !== 1) {
-      return res.status(401).json({ error: "Invalid login credentials" });
+      return res.status(401).json({ error: "User does not exist" });
     }
 
     const user = users[0];
 
     // Use bcrypt to compare inputted password to the one in database
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log(isPasswordValid)
 
     if (isPasswordValid) {
       // Password is valid
       const token = jwt.sign(
-        { user_id: user.user_id },
+        { user_id: user.id },
         process.env.JWT_SECRET_KEY
       );
 
@@ -135,6 +137,7 @@ router.post("/login", async (req, res) => {
 
     // Password is false
     return res.status(403).json({ error: "Invalid login credentials" });
+    
   } catch (error) {
     console.log(error);
     res.status(400).json({ error: error });
