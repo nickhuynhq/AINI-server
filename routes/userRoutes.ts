@@ -23,7 +23,7 @@ router.get("/", async (req, res) => {
 });
 
 // Get Users by ID
-router.get("/profile", authorize, async (req:any, res) => {
+router.get("/profile", authorize, async (req: any, res) => {
   try {
     const query = sql`SELECT name, username, picture, email, created_at FROM users WHERE id=$1`;
     const { rows } = await pool.query(query, [req.userId]);
@@ -118,6 +118,10 @@ router.post("/login", async (req, res) => {
     }
 
     const user = users[0];
+    const profile = {
+      username: user.username,
+      picture: user.picture,
+    };
 
     // Use bcrypt to compare inputted password to the one in database
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -131,6 +135,7 @@ router.post("/login", async (req, res) => {
       return res.json({
         message: "Successfully logged in",
         token,
+        profile,
       });
     }
 
