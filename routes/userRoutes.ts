@@ -120,7 +120,7 @@ router.post("/login", async (req, res) => {
     const user = users[0];
     const profile = {
       username: user.username,
-      picture: user.picture,
+      picture: user.picture
     };
 
     // Use bcrypt to compare inputted password to the one in database
